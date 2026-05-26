@@ -17,6 +17,8 @@
             --table-hover: #1e293b;
             --success: #34d399;
             --success-bg: #064e3b;
+            --danger: #ef4444;
+            --danger-bg: #7f1d1d;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); padding: 2rem 1rem; line-height: 1.5; }
@@ -26,32 +28,42 @@
         .nav-back a { color: var(--accent); text-decoration: none; font-size: 0.95rem; font-weight: 600; }
         .nav-back a:hover { color: var(--accent-hover); text-decoration: underline; }
 
-        header { margin-bottom: 2rem; }
-        header h1 { font-size: 2rem; color: var(--text-main); margin-bottom: 0.25rem; }
-        header p { color: var(--text-muted); }
+        header { margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem; }
+        .header-titles h1 { font-size: 2rem; color: var(--text-main); margin-bottom: 0.25rem; }
+        .header-titles p { color: var(--text-muted); }
+        
+        .btn { padding: 0.5rem 1rem; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; transition: background-color 0.2s; color: white; }
+        .btn-primary { background-color: var(--accent); }
+        .btn-primary:hover { background-color: var(--accent-hover); }
+        .btn-danger { background-color: var(--danger); padding: 0.25rem 0.5rem; font-size: 0.875rem; border-radius: 6px; }
+        .btn-danger:hover { background-color: #dc2626; }
         
         .config-panel { background: var(--card-bg); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; }
         .input-group { display: flex; flex-direction: column; gap: 0.5rem; }
         .input-group label { font-size: 0.875rem; font-weight: 600; color: var(--text-muted); }
-        .input-group input { padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border); background-color: var(--bg-color); color: var(--text-main); font-size: 1rem; }
-        .input-group input:focus { border-color: var(--accent); outline: none; }
+        .input-group input, .input-group select { padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border); background-color: var(--bg-color); color: var(--text-main); font-size: 1rem; }
+        .input-group input:focus, .input-group select:focus { border-color: var(--accent); outline: none; }
         
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
         .stat-card { background: var(--card-bg); padding: 1.25rem; border-radius: 10px; border: 1px solid var(--border); text-align: center; }
         .stat-card h3 { font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.25rem; }
         .stat-card p { font-size: 1.5rem; font-weight: bold; color: var(--accent); }
         
+        .status-badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.875rem; font-weight: bold; margin-bottom: 1rem;}
+        .status-ok { background-color: var(--success-bg); color: var(--success); }
+        .status-error { background-color: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger); }
+
         .table-container { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); overflow-x: auto; margin-bottom: 2rem; }
         table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.925rem; }
         th { background: var(--table-header); padding: 1rem; font-weight: 600; color: var(--text-muted); border-bottom: 1px solid var(--border); }
-        td { padding: 1rem; border-bottom: 1px solid var(--border); color: var(--text-main); }
+        td { padding: 1rem; border-bottom: 1px solid var(--border); color: var(--text-main); vertical-align: middle; }
         tr:hover { background: var(--table-hover); }
         
-        .input-table { width: 100px; padding: 0.4rem; border-radius: 6px; border: 1px solid var(--border); background-color: var(--bg-color); color: var(--text-main); text-align: right; }
+        .input-table { width: 100%; max-width: 120px; padding: 0.5rem; border-radius: 6px; border: 1px solid var(--border); background-color: var(--bg-color); color: var(--text-main); }
+        .input-text { max-width: 200px; }
         .input-table:focus { border-color: var(--accent); outline: none; }
         
-        .badge-target { font-weight: 600; color: var(--text-muted); }
-        .badge-allocation { font-weight: bold; color: var(--success); background: var(--success-bg); padding: 0.25rem 0.5rem; border-radius: 6px; }
+        .badge-allocation { font-weight: bold; color: var(--success); background: var(--success-bg); padding: 0.4rem 0.6rem; border-radius: 6px; display: inline-block;}
         footer { text-align: center; color: var(--text-muted); font-size: 0.875rem; margin-top: 4rem; }
     </style>
 </head>
@@ -63,19 +75,53 @@
     </div>
 
     <header>
-        <h1>Smart DCA Rebalancer</h1>
-        <p>Pacing & Smoothed Cash Flow Allocation Algorithm</p>
+        <div class="header-titles">
+            <h1>Smart DCA Rebalancer</h1>
+            <p>Customize your portfolio and pacing horizon</p>
+        </div>
+        <button class="btn btn-primary" onclick="addAsset()">+ Add Asset</button>
     </header>
 
     <div class="config-panel">
         <div class="input-group">
-            <label for="weekly-deposit">Weekly Contribution (€)</label>
-            <input type="number" id="weekly-deposit" value="100" min="15">
+            <label for="freq-select">Contribution Frequency</label>
+            <select id="freq-select" onchange="saveAndCalculate()">
+                <option value="Daily">Daily</option>
+                <option value="Weekly" selected>Weekly</option>
+                <option value="Bi-weekly">Bi-weekly</option>
+                <option value="Monthly">Monthly</option>
+                <option value="Quarterly">Quarterly</option>
+                <option value="Semi-annually">Semi-annually</option>
+                <option value="Annually">Annually</option>
+            </select>
         </div>
         <div class="input-group">
-            <label for="pacing-weeks">Pacing Horizon (Weeks)</label>
-            <input type="number" id="pacing-weeks" value="10" min="1">
+            <label for="period-deposit">Deposit per Period (€)</label>
+            <input type="number" id="period-deposit" value="100" min="1" oninput="saveAndCalculate()">
         </div>
+        <div class="input-group">
+            <label for="pacing-periods">Pacing Horizon (No. of Periods)</label>
+            <input type="number" id="pacing-periods" value="10" min="1" oninput="saveAndCalculate()">
+        </div>
+    </div>
+
+    <div id="target-warning" class="status-badge status-ok">Total Target: 100%</div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Asset Name</th>
+                    <th>Current Value (€)</th>
+                    <th>Target (%)</th>
+                    <th>Ideal Value (€)</th>
+                    <th>Order / Period (€)</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="asset-table-body">
+                </tbody>
+        </table>
     </div>
 
     <div class="stats-grid">
@@ -84,130 +130,152 @@
             <p id="stat-current-value">€0.00</p>
         </div>
         <div class="stat-card">
-            <h3>Target Value (Post-Pacing)</h3>
+            <h3>Total Future Value (Post-Pacing)</h3>
             <p id="stat-target-value">€0.00</p>
+        </div>
+        <div class="stat-card">
+            <h3>Total Order Amount</h3>
+            <p id="stat-total-order">€0.00</p>
         </div>
     </div>
 
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Asset Name</th>
-                    <th>Current Value (€)</th>
-                    <th>Target %</th>
-                    <th>Ideal Value (€)</th>
-                    <th>Weekly Order (€)</th>
-                </tr>
-            </thead>
-            <tbody id="asset-table-body">
-                </tbody>
-        </table>
-    </div>
-
     <footer>
-        <p>&copy; 2026 FIRE Toolkit. All Rights Reserved.</p>
+        <p>&copy; 2026 FIRE Toolkit. Data is saved locally in your browser.</p>
     </footer>
 </div>
 
 <script>
-    const assets = [
-        { name: "Core S&P 500 ETF", target: 40.0 },
-        { name: "MSCI China USD", target: 10.0 },
-        { name: "Space Innovators ETF", target: 10.0 },
-        { name: "Nikkei 255 JPY ETF", target: 10.0 },
-        { name: "Bitcoin", target: 5.0 },
-        { name: "Developed Markets Property Yield", target: 5.0 },
-        { name: "Global Water USD", target: 2.5 },
-        { name: "Copper USD", target: 2.5 },
-        { name: "Physical Silver", target: 2.5 },
-        { name: "Physical Gold USD", target: 2.5 },
-        { name: "Industrial Metals Enhanced", target: 2.5 },
-        { name: "Physical Platinum", target: 2.5 },
-        { name: "Rare Earth & Strategic Metals", target: 2.5 },
-        { name: "Uranium USD", target: 2.5 }
+    // Default data if user has no local storage saved
+    const defaultAssets = [
+        { name: "Global ETF (e.g. MSCI World)", current: 1000, target: 80 },
+        { name: "Bonds / Crypto / Satellite", current: 200, target: 20 }
     ];
 
-    const initialValues = {
-        "Core S&P 500 ETF": 916.59, "MSCI China USD": 34.52, "Space Innovators ETF": 206.18,
-        "Nikkei 255 JPY ETF": 117.06, "Bitcoin": 115.45, "Developed Markets Property Yield": 99.78,
-        "Global Water USD": 34.38, "Copper USD": 30.08, "Physical Silver": 28.76,
-        "Physical Gold USD": 28.00, "Industrial Metals Enhanced": 25.91, "Physical Platinum": 24.70,
-        "Rare Earth & Strategic Metals": 24.79, "Uranium USD": 23.41
-    };
+    let assets = JSON.parse(localStorage.getItem('fire_dca_assets')) || defaultAssets;
 
-    function calculateRebalance() {
-        const weeklyDeposit = parseFloat(document.getElementById('weekly-deposit').value) || 0;
-        const pacingWeeks = parseInt(document.getElementById('pacing-weeks').value) || 1;
+    // Load inputs from local storage or set defaults
+    document.getElementById('period-deposit').value = localStorage.getItem('fire_dca_deposit') || 100;
+    document.getElementById('pacing-periods').value = localStorage.getItem('fire_dca_pacing') || 10;
+    document.getElementById('freq-select').value = localStorage.getItem('fire_dca_freq') || 'Weekly';
+
+    function saveAndCalculate() {
+        // Save global settings
+        localStorage.setItem('fire_dca_deposit', document.getElementById('period-deposit').value);
+        localStorage.setItem('fire_dca_pacing', document.getElementById('pacing-periods').value);
+        localStorage.setItem('fire_dca_freq', document.getElementById('freq-select').value);
+        
+        // Save assets
+        localStorage.setItem('fire_dca_assets', JSON.stringify(assets));
+        
+        renderTable();
+    }
+
+    function addAsset() {
+        assets.push({ name: "New Asset", current: 0, target: 0 });
+        saveAndCalculate();
+    }
+
+    function removeAsset(index) {
+        assets.splice(index, 1);
+        saveAndCalculate();
+    }
+
+    function updateAsset(index, field, value) {
+        if(field === 'name') {
+            assets[index][field] = value;
+        } else {
+            let parsed = parseFloat(value);
+            assets[index][field] = isNaN(parsed) ? 0 : parsed;
+        }
+        // Save to local storage without re-rendering the whole table to avoid losing input focus
+        localStorage.setItem('fire_dca_assets', JSON.stringify(assets));
+        calculateMath();
+    }
+
+    function calculateMath() {
+        const deposit = parseFloat(document.getElementById('period-deposit').value) || 0;
+        const pacing = parseInt(document.getElementById('pacing-periods').value) || 1;
         
         let currentTotal = 0;
-        const rowsData = [];
+        let targetTotalPct = 0;
 
-        assets.forEach((asset, index) => {
-            const inputEl = document.getElementById(`val-${index}`);
-            let currentValue = inputEl ? parseFloat(inputEl.value) : (initialValues[asset.name] || 0);
-            if (isNaN(currentValue)) currentValue = 0;
-            currentTotal += currentValue;
-            rowsData.push({ ...asset, currentValue });
+        assets.forEach(a => {
+            currentTotal += a.current;
+            targetTotalPct += a.target;
         });
 
-        const targetTotalTheoretical = currentTotal + (weeklyDeposit * pacingWeeks);
+        // Update Warning Badge
+        const warningEl = document.getElementById('target-warning');
+        if (Math.abs(targetTotalPct - 100) > 0.01) {
+            warningEl.className = "status-badge status-error";
+            warningEl.innerText = `Warning: Targets sum up to ${targetTotalPct.toFixed(1)}% (Should be 100%)`;
+        } else {
+            warningEl.className = "status-badge status-ok";
+            warningEl.innerText = `Total Target: 100% (Perfect)`;
+        }
+
+        const targetTotalTheoretical = currentTotal + (deposit * pacing);
         
         let totalDeficit = 0;
-        rowsData.forEach(row => {
-            row.idealValue = targetTotalTheoretical * (row.target / 100);
-            row.deficit = Math.max(0, row.idealValue - row.currentValue);
-            totalDeficit += row.deficit;
+        const rowsData = assets.map(a => {
+            let idealValue = targetTotalTheoretical * (a.target / 100);
+            let deficit = Math.max(0, idealValue - a.current);
+            totalDeficit += deficit;
+            return { ...a, idealValue, deficit };
         });
 
         const numAssets = assets.length;
+        let actualOrderTotal = 0;
         
-        rowsData.forEach(row => {
-            if (weeklyDeposit < numAssets) {
-                row.finalAllocation = weeklyDeposit / numAssets;
+        rowsData.forEach((row, index) => {
+            if (numAssets === 0) return;
+            
+            // Protective floor of €1 per asset
+            if (deposit < numAssets) {
+                row.finalAllocation = deposit / numAssets;
             } else {
-                const remainingCash = weeklyDeposit - numAssets;
+                const remainingCash = deposit - numAssets;
                 const proportionalShare = totalDeficit === 0 ? 0 : (row.deficit / totalDeficit) * remainingCash;
                 row.finalAllocation = 1 + proportionalShare;
             }
+            
+            actualOrderTotal += row.finalAllocation;
+            
+            // Update DOM dynamically
+            const idealEl = document.getElementById(`ideal-${index}`);
+            const orderEl = document.getElementById(`order-${index}`);
+            if(idealEl) idealEl.innerText = `€${row.idealValue.toFixed(2)}`;
+            if(orderEl) orderEl.innerText = `€${row.finalAllocation.toFixed(2)}`;
         });
 
         document.getElementById('stat-current-value').innerText = `€${currentTotal.toFixed(2)}`;
         document.getElementById('stat-target-value').innerText = `€${targetTotalTheoretical.toFixed(2)}`;
-
-        rowsData.forEach((row, index) => {
-            document.getElementById(`ideal-${index}`).innerText = `€${row.idealValue.toFixed(2)}`;
-            document.getElementById(`order-${index}`).innerText = `€${row.finalAllocation.toFixed(2)}`;
-        });
+        document.getElementById('stat-total-order').innerText = `€${actualOrderTotal.toFixed(2)}`;
     }
 
-    function initTable() {
+    function renderTable() {
         const tbody = document.getElementById('asset-table-body');
         tbody.innerHTML = '';
 
         assets.forEach((asset, index) => {
             const tr = document.createElement('tr');
-            const startVal = initialValues[asset.name] || 0;
             
             tr.innerHTML = `
-                <td><strong>${asset.name}</strong></td>
-                <td><input type="number" id="val-${index}" class="input-table" value="${startVal}" step="0.01"></td>
-                <td class="badge-target">${asset.target.toFixed(1)}%</td>
+                <td><input type="text" class="input-table input-text" value="${asset.name}" oninput="updateAsset(${index}, 'name', this.value)"></td>
+                <td><input type="number" class="input-table" value="${asset.current}" step="0.01" min="0" oninput="updateAsset(${index}, 'current', this.value)"></td>
+                <td><input type="number" class="input-table" value="${asset.target}" step="0.1" min="0" max="100" oninput="updateAsset(${index}, 'target', this.value)"></td>
                 <td id="ideal-${index}">€0.00</td>
                 <td><span id="order-${index}" class="badge-allocation">€0.00</span></td>
+                <td><button class="btn btn-danger" onclick="removeAsset(${index})">Delete</button></td>
             `;
             tbody.appendChild(tr);
-            
-            document.getElementById(`val-${index}`).addEventListener('input', calculateRebalance);
         });
 
-        document.getElementById('weekly-deposit').addEventListener('input', calculateRebalance);
-        document.getElementById('pacing-weeks').addEventListener('input', calculateRebalance);
-
-        calculateRebalance();
+        calculateMath();
     }
 
-    window.onload = initTable;
+    // Initialize
+    window.onload = renderTable;
 </script>
 </body>
 </html>

@@ -28,7 +28,8 @@
         .nav-back a { color: var(--accent); text-decoration: none; font-size: 0.95rem; font-weight: 600; }
         .nav-back a:hover { color: var(--accent-hover); text-decoration: underline; }
 
-        header { margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem; }
+        /* HEADER ACTUALIZADO (Sin el botón) */
+        header { margin-bottom: 2rem; }
         .header-titles h1 { font-size: 2rem; color: var(--text-main); margin-bottom: 0.25rem; }
         .header-titles p { color: var(--text-muted); }
         
@@ -38,22 +39,25 @@
         .btn-danger { background-color: var(--danger); padding: 0.25rem 0.5rem; font-size: 0.875rem; border-radius: 6px; }
         .btn-danger:hover { background-color: #dc2626; }
         
-        .config-panel { background: var(--card-bg); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.5rem; }
+        .config-panel { background: var(--card-bg); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 1.5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.5rem; }
         .input-group { display: flex; flex-direction: column; gap: 0.5rem; }
         .input-group label { font-size: 0.875rem; font-weight: 600; color: var(--text-muted); }
         .input-group input, .input-group select { padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border); background-color: var(--bg-color); color: var(--text-main); font-size: 1rem; }
         .input-group input:focus, .input-group select:focus { border-color: var(--accent); outline: none; }
         
+        /* NUEVA BARRA DE HERRAMIENTAS (Botón y etiquetas) */
+        .table-toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; }
+        .badges-container { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+        .status-badge { display: inline-flex; align-items: center; padding: 0.35rem 0.75rem; border-radius: 999px; font-size: 0.875rem; font-weight: bold; }
+        .status-ok { background-color: var(--success-bg); color: var(--success); }
+        .status-error { background-color: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger); }
+        .status-api { background-color: #3b82f633; color: var(--accent); }
+
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
         .stat-card { background: var(--card-bg); padding: 1.25rem; border-radius: 10px; border: 1px solid var(--border); text-align: center; }
         .stat-card h3 { font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.25rem; }
         .stat-card p { font-size: 1.5rem; font-weight: bold; color: var(--accent); }
         
-        .status-badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.875rem; font-weight: bold; margin-bottom: 1rem;}
-        .status-ok { background-color: var(--success-bg); color: var(--success); }
-        .status-error { background-color: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger); }
-        .status-api { background-color: #3b82f633; color: var(--accent); margin-left: 1rem; }
-
         .table-container { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); overflow-x: auto; margin-bottom: 2rem; }
         table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.925rem; }
         th { background: var(--table-header); padding: 1rem; font-weight: 600; color: var(--text-muted); border-bottom: 1px solid var(--border); }
@@ -68,7 +72,6 @@
         .input-table:focus, .select-mini:focus { border-color: var(--accent); outline: none; }
         
         .badge-allocation { font-weight: bold; color: var(--success); background: var(--success-bg); padding: 0.4rem 0.6rem; border-radius: 6px; display: inline-block;}
-        footer { text-align: center; color: var(--text-muted); font-size: 0.875rem; margin-top: 4rem; }
     </style>
 </head>
 <body>
@@ -83,7 +86,6 @@
             <h1>Smart DCA Rebalancer</h1>
             <p>Multi-currency support with real-time conversion</p>
         </div>
-        <button class="btn btn-primary" onclick="addAsset()">+ Add Asset</button>
     </header>
 
     <div class="config-panel">
@@ -110,9 +112,12 @@
         </div>
     </div>
 
-    <div>
-        <div id="target-warning" class="status-badge status-ok">Total Target: 100%</div>
-        <div id="api-status" class="status-badge status-api">Rates: Connecting...</div>
+    <div class="table-toolbar">
+        <div class="badges-container">
+            <div id="target-warning" class="status-badge status-ok">Total Target: 100%</div>
+            <div id="api-status" class="status-badge status-api">Rates: Connecting...</div>
+        </div>
+        <button class="btn btn-primary" onclick="addAsset()">+ Add Asset</button>
     </div>
 
     <div class="table-container">
@@ -147,27 +152,26 @@
         </div>
     </div>
 
-    <footer>
-        <p>&copy; 2026 FIRE Toolkit. Exchange rates provided by ExchangeRate-API. Data saved locally.</p>
-    </footer>
+    <div id="global-footer-container"></div>
+    <script src="../js/footer.js"></script>
+
 </div>
 
 <script>
     const defaultAssets = [
-        { name: "S&P 500 ETF", current: 900, target: 40, currency: "EUR" },
-        { name: "Bitcoin", current: 115, target: 10, currency: "USD" },
-        { name: "Nikkei 255", current: 117, target: 10, currency: "JPY" }
+        { name: "Global ETF (e.g. MSCI World)", current: 1000, target: 30, currency: "EUR" },
+        { name: "Bonds / Crypto / Satellite", current: 200, target: 19, currency: "EUR" },
+        { name: "New Asset", current: 300, target: 51, currency: "USD" }
     ];
 
     let assets = JSON.parse(localStorage.getItem('fire_dca_assets')) || defaultAssets;
     
-    // Fallback inicial por si la API falla o tarda en cargar
     let exchangeRates = { EUR: 1, USD: 1.08, GBP: 0.85, JPY: 160, CHF: 0.98, CAD: 1.47, AUD: 1.64 }; 
     let availableCurrencies = ["EUR", "USD", "GBP", "JPY", "CHF", "CAD", "AUD"];
     
     const commonSymbols = { EUR: '€', USD: '$', GBP: '£', JPY: '¥', CHF: 'CHF', CAD: 'C$', AUD: 'A$', CNY: '¥', INR: '₹', BRL: 'R$', MXN: '$' };
 
-    document.getElementById('period-deposit').value = localStorage.getItem('fire_dca_deposit') || 100;
+    document.getElementById('period-deposit').value = localStorage.getItem('fire_dca_deposit') || 90;
     document.getElementById('pacing-periods').value = localStorage.getItem('fire_dca_pacing') || 10;
     document.getElementById('freq-select').value = localStorage.getItem('fire_dca_freq') || 'Weekly';
 
@@ -175,11 +179,10 @@
         return commonSymbols[cur] ? commonSymbols[cur] : cur + ' ';
     }
 
-    // Genera el listado de divisas en el panel superior
     function populateBaseCurrencySelect() {
         const baseSelect = document.getElementById('base-currency');
         const savedBase = localStorage.getItem('fire_dca_base_cur') || 'EUR';
-        baseSelect.innerHTML = ''; // Limpiamos
+        baseSelect.innerHTML = ''; 
         
         availableCurrencies.forEach(c => {
             const opt = document.createElement('option');
@@ -196,17 +199,14 @@
             const data = await response.json();
             if (data.rates) {
                 exchangeRates = data.rates;
-                // Extraemos todas las divisas disponibles de la API (160+)
                 availableCurrencies = Object.keys(data.rates); 
                 
-                // Forzamos a que las divisas principales salgan primero y el resto alfabéticamente
                 const majors = ["EUR", "USD", "GBP", "JPY", "CHF", "CAD", "AUD"];
                 const others = availableCurrencies.filter(c => !majors.includes(c)).sort();
                 availableCurrencies = [...majors, ...others];
 
                 document.getElementById('api-status').innerText = `Rates: Live API (${availableCurrencies.length} currencies)`;
                 
-                // Actualizamos las listas desplegables y la tabla
                 populateBaseCurrencySelect();
                 renderTable();
             }
@@ -333,7 +333,6 @@
         assets.forEach((asset, index) => {
             const tr = document.createElement('tr');
             
-            // Construimos las opciones de divisas para cada activo basadas en las disponibles
             let curOptions = '';
             availableCurrencies.forEach(c => {
                 const selected = (asset.currency || baseCur) === c ? 'selected' : '';
@@ -362,16 +361,11 @@
         calculateMath();
     }
 
-    // Arrancamos todo
     window.onload = () => {
         populateBaseCurrencySelect();
         renderTable();
-        fetchRates(); // Llama a la API en segundo plano
+        fetchRates(); 
     };
 </script>
-
-<div id="global-footer-container"></div>
-    
-<script src="../js/footer.js"></script>
 </body>
 </html>

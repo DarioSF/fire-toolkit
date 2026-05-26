@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>True Hourly Wage Calculator - FIRE Toolkit</title>
+    <style>
+        :root {
+            --bg-color: #0b1329;
+            --card-bg: #1c2541;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --border: #334155;
+            --success: #34d399;
+            --danger: #ef4444;
+            --danger-bg: #7f1d1d;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 2rem 1rem; line-height: 1.5; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        
+        .nav-back { margin-bottom: 1.5rem; }
+        .nav-back a { color: var(--accent); text-decoration: none; font-size: 0.95rem; font-weight: 600; }
+        .nav-back a:hover { text-decoration: underline; }
+
+        header { margin-bottom: 2rem; }
+        header h1 { font-size: 2rem; color: var(--text-main); margin-bottom: 0.25rem; }
+        header p { color: var(--text-muted); }
+        
+        .config-layout { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        
+        .panel { background: var(--card-bg); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); }
+        .panel h2 { font-size: 1.25rem; margin-bottom: 1.25rem; color: var(--text-main); border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+        
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+        .full-width { grid-column: span 2; }
+        
+        .input-group { display: flex; flex-direction: column; gap: 0.5rem; }
+        .input-group label { font-size: 0.875rem; font-weight: 600; color: var(--text-muted); }
+        .input-group input, .input-group select { padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border); background-color: var(--bg-color); color: var(--text-main); font-size: 1rem; width: 100%; }
+        .input-group input:focus, .input-group select:focus { border-color: var(--accent); outline: none; }
+        
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .stat-card { background: var(--bg-color); padding: 1.5rem; border-radius: 10px; border: 1px solid var(--border); text-align: center; display: flex; flex-direction: column; justify-content: center; }
+        .stat-card h3 { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+        .stat-card p { font-size: 2rem; font-weight: bold; color: var(--text-main); }
+        .stat-card .highlight { color: var(--accent); }
+        .stat-card .highlight-danger { color: var(--danger); }
+        
+        .insight-box { background-color: rgba(59, 130, 246, 0.1); border: 1px solid var(--accent); padding: 1.5rem; border-radius: 12px; margin-top: 2rem; text-align: center; }
+        .insight-box h4 { margin-bottom: 0.5rem; color: var(--accent); font-size: 1.1rem;}
+        .insight-box p { color: var(--text-muted); font-size: 0.95rem; }
+
+        footer { text-align: center; color: var(--text-muted); font-size: 0.875rem; margin-top: 4rem; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="nav-back">
+        <a href="../">← Back to FIRE Toolkit</a>
+    </div>
+
+    <header>
+        <h1>True Hourly Wage Calculator</h1>
+        <p>Find out what an hour of your life is actually worth after hidden costs and commutes.</p>
+    </header>
+
+    <div class="config-layout">
+        <div class="panel">
+            <h2>Your Income & Time</h2>
+            <div class="input-grid">
+                <div class="input-group">
+                    <label for="currency">Currency</label>
+                    <select id="currency" onchange="calculateTrueWage()">
+                        <option value="USD">USD ($)</option>
+                        <option value="EUR">EUR (€)</option>
+                        <option value="GBP">GBP (£)</option>
+                        <option value="CAD">CAD (C$)</option>
+                        <option value="AUD">AUD (A$)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="income-amount">Income Amount</label>
+                    <input type="number" id="income-amount" value="50000" min="0" oninput="calculateTrueWage()">
+                </div>
+                <div class="input-group full-width">
+                    <label for="income-freq">Income Frequency</label>
+                    <select id="income-freq" onchange="calculateTrueWage()">
+                        <option value="52">Weekly</option>
+                        <option value="12">Monthly</option>
+                        <option value="1" selected>Yearly</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="work-hours">Work Hours / Week</label>
+                    <input type="number" id="work-hours" value="40" min="1" oninput="calculateTrueWage()">
+                </div>
+                <div class="input-group">
+                    <label for="commute-hours">Commute Hours / Week</label>
+                    <input type="number" id="commute-hours" value="5" min="0" step="0.5" oninput="calculateTrueWage()">
+                </div>
+            </div>
+
+            <h2 style="margin-top: 2rem;">Hidden Work Expenses</h2>
+            <div class="input-grid">
+                <div class="input-group">
+                    <label for="commute-cost">Gas/Transit (Monthly)</label>
+                    <input type="number" id="commute-cost" value="150" min="0" oninput="calculateTrueWage()">
+                </div>
+                <div class="input-group">
+                    <label for="food-cost">Work Meals/Coffee (Monthly)</label>
+                    <input type="number" id="food-cost" value="100" min="0" oninput="calculateTrueWage()">
+                </div>
+                <div class="input-group full-width">
+                    <label for="clothes-cost">Clothes/Tools/Other (Yearly)</label>
+                    <input type="number" id="clothes-cost" value="500" min="0" oninput="calculateTrueWage()">
+                </div>
+            </div>
+        </div>
+
+        <div class="panel" style="display: flex; flex-direction: column;">
+            <h2>The Reality Check</h2>
+            <div class="stats-grid" style="flex-grow: 1;">
+                <div class="stat-card full-width">
+                    <h3>Your Nominal Hourly Wage</h3>
+                    <p id="stat-nominal" style="font-size: 1.5rem;">$0.00/hr</p>
+                </div>
+                <div class="stat-card full-width" style="border-color: var(--accent); background-color: var(--card-bg);">
+                    <h3>Your TRUE Hourly Wage</h3>
+                    <p id="stat-true" class="highlight">$0.00/hr</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Hours Given</h3>
+                    <p id="stat-hours" class="highlight-danger">0 hrs/yr</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Lost to Job</h3>
+                    <p id="stat-lost" class="highlight-danger">$0/yr</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="insight-box">
+        <h4 id="insight-title">What does this mean?</h4>
+        <p id="insight-text">Loading insights...</p>
+    </div>
+
+    <div id="global-footer-container"></div>
+    <script src="../js/footer.js"></script>
+</div>
+
+<script>
+    const keys = { cur: 'thw_cur', inc: 'thw_inc', freq: 'thw_freq', wh: 'thw_wh', ch: 'thw_ch', cc: 'thw_cc', fc: 'thw_fc', clc: 'thw_clc' };
+    const currencySymbols = { USD: '$', EUR: '€', GBP: '£', CAD: 'C$', AUD: 'A$' };
+
+    if(localStorage.getItem(keys.cur)) document.getElementById('currency').value = localStorage.getItem(keys.cur);
+    if(localStorage.getItem(keys.inc)) document.getElementById('income-amount').value = localStorage.getItem(keys.inc);
+    if(localStorage.getItem(keys.freq)) document.getElementById('income-freq').value = localStorage.getItem(keys.freq);
+    if(localStorage.getItem(keys.wh)) document.getElementById('work-hours').value = localStorage.getItem(keys.wh);
+    if(localStorage.getItem(keys.ch)) document.getElementById('commute-hours').value = localStorage.getItem(keys.ch);
+    if(localStorage.getItem(keys.cc)) document.getElementById('commute-cost').value = localStorage.getItem(keys.cc);
+    if(localStorage.getItem(keys.fc)) document.getElementById('food-cost').value = localStorage.getItem(keys.fc);
+    if(localStorage.getItem(keys.clc)) document.getElementById('clothes-cost').value = localStorage.getItem(keys.clc);
+
+    function calculateTrueWage() {
+        const currency = document.getElementById('currency').value;
+        const sym = currencySymbols[currency] || '$';
+
+        const incomeAmt = parseFloat(document.getElementById('income-amount').value) || 0;
+        const incomeFreq = parseFloat(document.getElementById('income-freq').value) || 1;
+        const workHours = parseFloat(document.getElementById('work-hours').value) || 0;
+        const commuteHours = parseFloat(document.getElementById('commute-hours').value) || 0;
+        
+        const commuteCost = parseFloat(document.getElementById('commute-cost').value) || 0;
+        const foodCost = parseFloat(document.getElementById('food-cost').value) || 0;
+        const clothesCost = parseFloat(document.getElementById('clothes-cost').value) || 0;
+
+        // Guardar
+        localStorage.setItem(keys.cur, currency);
+        localStorage.setItem(keys.inc, incomeAmt);
+        localStorage.setItem(keys.freq, incomeFreq);
+        localStorage.setItem(keys.wh, workHours);
+        localStorage.setItem(keys.ch, commuteHours);
+        localStorage.setItem(keys.cc, commuteCost);
+        localStorage.setItem(keys.fc, foodCost);
+        localStorage.setItem(keys.clc, clothesCost);
+
+        // Standarizar todo a anual (asumiendo 52 semanas laborales)
+        const annualGross = incomeAmt * incomeFreq;
+        const annualWorkHours = workHours * 52;
+        const annualCommuteHours = commuteHours * 52;
+        
+        const annualHiddenCosts = (commuteCost * 12) + (foodCost * 12) + clothesCost;
+        
+        const nominalHourly = annualWorkHours > 0 ? (annualGross / annualWorkHours) : 0;
+        
+        const trueAnnualNet = annualGross - annualHiddenCosts;
+        const totalLifeHoursDedicated = annualWorkHours + annualCommuteHours;
+        const trueHourly = totalLifeHoursDedicated > 0 ? (trueAnnualNet / totalLifeHoursDedicated) : 0;
+
+        document.getElementById('stat-nominal').innerText = `${sym}${nominalHourly.toFixed(2)}/hr`;
+        document.getElementById('stat-true').innerText = `${sym}${trueHourly.toFixed(2)}/hr`;
+        document.getElementById('stat-hours').innerText = `${totalLifeHoursDedicated.toLocaleString()} hrs/yr`;
+        document.getElementById('stat-lost').innerText = `${sym}${annualHiddenCosts.toLocaleString()}/yr`;
+
+        const diffPct = nominalHourly > 0 ? ((nominalHourly - trueHourly) / nominalHourly) * 100 : 0;
+        
+        const title = document.getElementById('insight-title');
+        const text = document.getElementById('insight-text');
+
+        if (totalLifeHoursDedicated === 0) {
+            title.innerText = "Enter your data";
+            text.innerText = "Fill in your income and hours to see the reality check.";
+        } else {
+            title.innerText = `Your time is worth ${diffPct.toFixed(1)}% less than you think.`;
+            text.innerHTML = `On paper, you make <strong>${sym}${nominalHourly.toFixed(2)}</strong> an hour. But you spend <strong>${annualCommuteHours} hours</strong> a year just traveling to work, and you burn <strong>${sym}${annualHiddenCosts.toLocaleString()}</strong> on gas, food, and work expenses. When you account for the actual time and money your job consumes, your True Hourly Wage is only <strong>${sym}${trueHourly.toFixed(2)}</strong>.`;
+        }
+    }
+
+    window.onload = calculateTrueWage;
+</script>
+</body>
+</html>

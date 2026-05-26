@@ -43,7 +43,7 @@
         .stats-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; height: 100%; }
         .stat-card { background: var(--card-bg); padding: 1.5rem; border-radius: 10px; border: 1px solid var(--border); text-align: center; display: flex; flex-direction: column; justify-content: center; }
         .stat-card h3 { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 0.5rem; }
-        .stat-card p { font-size: 2rem; font-weight: bold; color: var(--success); }
+        .stat-card p { font-size: 2rem; font-weight: bold; color: var(--text-main); }
 
         .chart-container { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); padding: 1.5rem; margin-bottom: 2rem; height: 350px; position: relative; }
         
@@ -106,16 +106,16 @@
         <div class="results-panel">
             <div class="stats-grid">
                 <div class="stat-card">
-                    <h3>Year 10 Annual Income</h3>
-                    <p id="stat-yr10">$0</p>
+                    <h3>Total Out of Pocket</h3>
+                    <p id="stat-invested">$0</p>
                 </div>
-                <div class="stat-card">
-                    <h3>Year 20 Annual Income</h3>
-                    <p id="stat-yr20">$0</p>
+                <div class="stat-card" style="border-color: var(--accent);">
+                    <h3 style="color: var(--accent);">Total Dividends Earned</h3>
+                    <p id="stat-dividends" style="color: var(--accent);">$0</p>
                 </div>
                 <div class="stat-card" style="border-color: var(--success);">
-                    <h3 style="color: var(--success);">Year 30 Annual Income</h3>
-                    <p id="stat-yr30">$0</p>
+                    <h3 id="label-final-income" style="color: var(--success);">Final Annual Income</h3>
+                    <p id="stat-final-income" style="color: var(--success);">$0</p>
                 </div>
             </div>
         </div>
@@ -180,6 +180,7 @@
 
         let currentBalance = principal;
         let cumulativeContributions = principal;
+        let totalDividends = 0;
         
         let chartLabels = [];
         let chartData = [];
@@ -188,25 +189,22 @@
             const annualContrib = monthly * 12;
             cumulativeContributions += annualContrib;
             
-            // Asumimos que las aportaciones se hacen a lo largo del año.
-            // Para simplificar: el dividendo se calcula sobre el balance inicial + aportaciones.
             const baseForYield = currentBalance + annualContrib;
             const dividendsEarned = baseForYield * (yieldPct / 100);
+            totalDividends += dividendsEarned;
             
-            // El balance final suma aportaciones, dividendos (DRIP) y crecimiento de capital
             const capitalGrowth = baseForYield * (appPct / 100);
             currentBalance = baseForYield + dividendsEarned + capitalGrowth;
 
-            // Rellenar Arrays para el gráfico
             chartLabels.push(`Year ${i}`);
             chartData.push(dividendsEarned);
 
-            // Rellenar Stats
-            if(i === 10) document.getElementById('stat-yr10').innerText = `${sym}${dividendsEarned.toLocaleString('en-US', {maximumFractionDigits: 0})}`;
-            if(i === 20) document.getElementById('stat-yr20').innerText = `${sym}${dividendsEarned.toLocaleString('en-US', {maximumFractionDigits: 0})}`;
-            if(i === 30 || i === years) document.getElementById('stat-yr30').innerText = `${sym}${dividendsEarned.toLocaleString('en-US', {maximumFractionDigits: 0})}`;
+            // Actualizar el título y valor de la tarjeta final dinámicamente en el último año
+            if (i === years) {
+                document.getElementById('label-final-income').innerText = `Year ${years} Annual Income`;
+                document.getElementById('stat-final-income').innerText = `${sym}${dividendsEarned.toLocaleString('en-US', {maximumFractionDigits: 0})}`;
+            }
 
-            // Rellenar Tabla
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>Year ${i}</td>
@@ -216,6 +214,10 @@
             `;
             tbody.appendChild(tr);
         }
+        
+        // Actualizar las nuevas tarjetas de totales
+        document.getElementById('stat-invested').innerText = `${sym}${cumulativeContributions.toLocaleString('en-US', {maximumFractionDigits: 0})}`;
+        document.getElementById('stat-dividends').innerText = `${sym}${totalDividends.toLocaleString('en-US', {maximumFractionDigits: 0})}`;
 
         updateChart(chartLabels, chartData, sym);
     }
@@ -231,7 +233,7 @@
                 datasets: [{
                     label: 'Annual Passive Income',
                     data: data,
-                    backgroundColor: '#10b981', // Verde éxito
+                    backgroundColor: '#10b981',
                     borderRadius: 4,
                 }]
             },

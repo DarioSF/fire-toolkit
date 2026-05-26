@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dividend Snowball Visualizer - FIRE Toolkit</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #0b1329;
+            --card-bg: #1c2541;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --border: #334155;
+            --table-header: #1e293b;
+            --table-hover: #1e293b;
+            --success: #34d399;
+            --success-bg: #064e3b;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 2rem 1rem; line-height: 1.5; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        
+        .nav-back { margin-bottom: 1.5rem; }
+        .nav-back a { color: var(--accent); text-decoration: none; font-size: 0.95rem; font-weight: 600; }
+        .nav-back a:hover { text-decoration: underline; }
+
+        header { margin-bottom: 2rem; }
+        header h1 { font-size: 2rem; color: var(--text-main); margin-bottom: 0.25rem; }
+        header p { color: var(--text-muted); }
+        
+        .config-layout { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .config-panel { background: var(--card-bg); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+        
+        .input-group { display: flex; flex-direction: column; gap: 0.5rem; }
+        .input-group label { font-size: 0.875rem; font-weight: 600; color: var(--text-muted); }
+        .input-group input, .input-group select { padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border); background-color: var(--bg-color); color: var(--text-main); font-size: 1rem; width: 100%; }
+        .input-group input:focus, .input-group select:focus { border-color: var(--accent); outline: none; }
+        
+        .results-panel { display: flex; flex-direction: column; justify-content: space-between; }
+        .stats-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; height: 100%; }
+        .stat-card { background: var(--card-bg); padding: 1.5rem; border-radius: 10px; border: 1px solid var(--border); text-align: center; display: flex; flex-direction: column; justify-content: center; }
+        .stat-card h3 { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+        .stat-card p { font-size: 2rem; font-weight: bold; color: var(--success); }
+
+        .chart-container { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); padding: 1.5rem; margin-bottom: 2rem; height: 350px; position: relative; }
+        
+        .table-container { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); overflow-x: auto; margin-bottom: 2rem; max-height: 400px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.925rem; }
+        th { background: var(--table-header); padding: 1rem; font-weight: 600; color: var(--text-muted); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; }
+        td { padding: 0.85rem 1rem; border-bottom: 1px solid var(--border); color: var(--text-main); }
+        tr:hover { background: var(--table-hover); }
+        .highlight-td { color: var(--success); font-weight: bold; }
+
+        footer { text-align: center; color: var(--text-muted); font-size: 0.875rem; margin-top: 4rem; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="nav-back">
+        <a href="../">← Back to FIRE Toolkit</a>
+    </div>
+
+    <header>
+        <h1>Dividend Snowball Visualizer</h1>
+        <p>Watch your passive income grow exponentially when you reinvest your dividends (DRIP).</p>
+    </header>
+
+    <div class="config-layout">
+        <div class="config-panel">
+            <div class="input-group">
+                <label for="currency">Currency</label>
+                <select id="currency" onchange="simulateSnowball()">
+                    <option value="USD">USD ($)</option>
+                    <option value="EUR">EUR (€)</option>
+                    <option value="GBP">GBP (£)</option>
+                    <option value="CAD">CAD (C$)</option>
+                    <option value="AUD">AUD (A$)</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label for="initial-principal">Starting Portfolio</label>
+                <input type="number" id="initial-principal" value="10000" min="0" oninput="simulateSnowball()">
+            </div>
+            <div class="input-group">
+                <label for="monthly-contribution">Monthly Contribution</label>
+                <input type="number" id="monthly-contribution" value="500" min="0" oninput="simulateSnowball()">
+            </div>
+            <div class="input-group">
+                <label for="dividend-yield">Dividend Yield (%)</label>
+                <input type="number" id="dividend-yield" value="3.5" step="0.1" oninput="simulateSnowball()">
+            </div>
+            <div class="input-group">
+                <label for="price-appreciation">Annual Price Growth (%)</label>
+                <input type="number" id="price-appreciation" value="4.0" step="0.1" oninput="simulateSnowball()">
+            </div>
+            <div class="input-group">
+                <label for="years-to-simulate">Years to Simulate</label>
+                <input type="number" id="years-to-simulate" value="30" min="5" max="50" oninput="simulateSnowball()">
+            </div>
+        </div>
+
+        <div class="results-panel">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Year 10 Annual Income</h3>
+                    <p id="stat-yr10">$0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Year 20 Annual Income</h3>
+                    <p id="stat-yr20">$0</p>
+                </div>
+                <div class="stat-card" style="border-color: var(--success);">
+                    <h3 style="color: var(--success);">Year 30 Annual Income</h3>
+                    <p id="stat-yr30">$0</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h2>Passive Income Growth</h2>
+    <div class="chart-container">
+        <canvas id="snowballChart"></canvas>
+    </div>
+
+    <h2>Year-by-Year Breakdown</h2>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Year</th>
+                    <th>Total Contributions</th>
+                    <th>Annual Dividends (Income)</th>
+                    <th>End of Year Portfolio</th>
+                </tr>
+            </thead>
+            <tbody id="snowball-table-body">
+                </tbody>
+        </table>
+    </div>
+
+    <div id="global-footer-container"></div>
+    <script src="../js/footer.js"></script>
+</div>
+
+<script>
+    const keys = { cur: 'ds_cur', prin: 'ds_prin', mc: 'ds_mc', yld: 'ds_yld', app: 'ds_app', yrs: 'ds_yrs' };
+    const currencySymbols = { USD: '$', EUR: '€', GBP: '£', CAD: 'C$', AUD: 'A$' };
+    let chartInstance = null;
+
+    if(localStorage.getItem(keys.cur)) document.getElementById('currency').value = localStorage.getItem(keys.cur);
+    if(localStorage.getItem(keys.prin)) document.getElementById('initial-principal').value = localStorage.getItem(keys.prin);
+    if(localStorage.getItem(keys.mc)) document.getElementById('monthly-contribution').value = localStorage.getItem(keys.mc);
+    if(localStorage.getItem(keys.yld)) document.getElementById('dividend-yield').value = localStorage.getItem(keys.yld);
+    if(localStorage.getItem(keys.app)) document.getElementById('price-appreciation').value = localStorage.getItem(keys.app);
+    if(localStorage.getItem(keys.yrs)) document.getElementById('years-to-simulate').value = localStorage.getItem(keys.yrs);
+
+    function simulateSnowball() {
+        const currency = document.getElementById('currency').value;
+        const sym = currencySymbols[currency] || '$';
+
+        const principal = parseFloat(document.getElementById('initial-principal').value) || 0;
+        const monthly = parseFloat(document.getElementById('monthly-contribution').value) || 0;
+        const yieldPct = parseFloat(document.getElementById('dividend-yield').value) || 0;
+        const appPct = parseFloat(document.getElementById('price-appreciation').value) || 0;
+        const years = parseInt(document.getElementById('years-to-simulate').value) || 30;
+
+        localStorage.setItem(keys.cur, currency);
+        localStorage.setItem(keys.prin, principal);
+        localStorage.setItem(keys.mc, monthly);
+        localStorage.setItem(keys.yld, yieldPct);
+        localStorage.setItem(keys.app, appPct);
+        localStorage.setItem(keys.yrs, years);
+
+        const tbody = document.getElementById('snowball-table-body');
+        tbody.innerHTML = '';
+
+        let currentBalance = principal;
+        let cumulativeContributions = principal;
+        
+        let chartLabels = [];
+        let chartData = [];
+
+        for (let i = 1; i <= years; i++) {
+            const annualContrib = monthly * 12;
+            cumulativeContributions += annualContrib;
+            
+            // Asumimos que las aportaciones se hacen a lo largo del año.
+            // Para simplificar: el dividendo se calcula sobre el balance inicial + aportaciones.
+            const baseForYield = currentBalance + annualContrib;
+            const dividendsEarned = baseForYield * (yieldPct / 100);
+            
+            // El balance final suma aportaciones, dividendos (DRIP) y crecimiento de capital
+            const capitalGrowth = baseForYield * (appPct / 100);
+            currentBalance = baseForYield + dividendsEarned + capitalGrowth;
+
+            // Rellenar Arrays para el gráfico
+            chartLabels.push(`Year ${i}`);
+            chartData.push(dividendsEarned);
+
+            // Rellenar Stats
+            if(i === 10) document.getElementById('stat-yr10').innerText = `${sym}${dividendsEarned.toLocaleString('en-US', {maximumFractionDigits: 0})}`;
+            if(i === 20) document.getElementById('stat-yr20').innerText = `${sym}${dividendsEarned.toLocaleString('en-US', {maximumFractionDigits: 0})}`;
+            if(i === 30 || i === years) document.getElementById('stat-yr30').innerText = `${sym}${dividendsEarned.toLocaleString('en-US', {maximumFractionDigits: 0})}`;
+
+            // Rellenar Tabla
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>Year ${i}</td>
+                <td>${sym}${cumulativeContributions.toLocaleString('en-US', {maximumFractionDigits: 0})}</td>
+                <td class="highlight-td">+ ${sym}${dividendsEarned.toLocaleString('en-US', {maximumFractionDigits: 0})}</td>
+                <td>${sym}${currentBalance.toLocaleString('en-US', {maximumFractionDigits: 0})}</td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        updateChart(chartLabels, chartData, sym);
+    }
+
+    function updateChart(labels, data, sym) {
+        const ctx = document.getElementById('snowballChart').getContext('2d');
+        if (chartInstance) chartInstance.destroy();
+
+        chartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Annual Passive Income',
+                    data: data,
+                    backgroundColor: '#10b981', // Verde éxito
+                    borderRadius: 4,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return ` Income: ${sym}${context.parsed.y.toLocaleString('en-US', {maximumFractionDigits: 0})}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: { 
+                        beginAtZero: true, 
+                        grid: { color: '#334155' },
+                        ticks: { color: '#94a3b8', callback: function(value) { return sym + value.toLocaleString(); } }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+    }
+
+    window.onload = simulateSnowball;
+</script>
+</body>
+</html>

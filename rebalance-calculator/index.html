@@ -64,7 +64,7 @@
         .input-table { width: 100%; padding: 0.5rem; border-radius: 6px; border: 1px solid var(--border); background-color: var(--bg-color); color: var(--text-main); }
         .input-text { max-width: 200px; }
         .input-number { max-width: 100px; }
-        .select-mini { padding: 0.4rem; border-radius: 6px; border: 1px solid var(--border); background-color: var(--card-bg); color: var(--text-main); font-size: 0.85rem; }
+        .select-mini { padding: 0.4rem; border-radius: 6px; border: 1px solid var(--border); background-color: var(--card-bg); color: var(--text-main); font-size: 0.85rem; max-width: 80px; }
         .input-table:focus, .select-mini:focus { border-color: var(--accent); outline: none; }
         
         .badge-allocation { font-weight: bold; color: var(--success); background: var(--success-bg); padding: 0.4rem 0.6rem; border-radius: 6px; display: inline-block;}
@@ -89,11 +89,7 @@
     <div class="config-panel">
         <div class="input-group">
             <label for="base-currency">Base Currency</label>
-            <select id="base-currency" onchange="saveAndCalculate()">
-                <option value="EUR">EUR (€)</option>
-                <option value="USD">USD ($)</option>
-                <option value="GBP">GBP (£)</option>
-            </select>
+            <select id="base-currency" onchange="saveAndCalculate()"></select>
         </div>
         <div class="input-group">
             <label for="freq-select">Frequency</label>
@@ -116,7 +112,7 @@
 
     <div>
         <div id="target-warning" class="status-badge status-ok">Total Target: 100%</div>
-        <div id="api-status" class="status-badge status-api">Rates: Loading...</div>
+        <div id="api-status" class="status-badge status-api">Rates: Connecting...</div>
     </div>
 
     <div class="table-container">
@@ -164,15 +160,35 @@
     ];
 
     let assets = JSON.parse(localStorage.getItem('fire_dca_assets')) || defaultAssets;
-    let exchangeRates = { EUR: 1, USD: 1.08, GBP: 0.85, JPY: 160, CHF: 0.98 }; // Fallback rates
     
-    const currencies = ["EUR", "USD", "GBP", "JPY", "CHF", "CAD", "AUD"];
-    const symbols = { EUR: '€', USD: '$', GBP: '£', JPY: '¥', CHF: 'CHF', CAD: 'C$', AUD: 'A$' };
+    // Fallback inicial por si la API falla o tarda en cargar
+    let exchangeRates = { EUR: 1, USD: 1.08, GBP: 0.85, JPY: 160, CHF: 0.98, CAD: 1.47, AUD: 1.64 }; 
+    let availableCurrencies = ["EUR", "USD", "GBP", "JPY", "CHF", "CAD", "AUD"];
+    
+    const commonSymbols = { EUR: '€', USD: '$', GBP: '£', JPY: '¥', CHF: 'CHF', CAD: 'C$', AUD: 'A$', CNY: '¥', INR: '₹', BRL: 'R$', MXN: '$' };
 
-    document.getElementById('base-currency').value = localStorage.getItem('fire_dca_base_cur') || 'EUR';
     document.getElementById('period-deposit').value = localStorage.getItem('fire_dca_deposit') || 100;
     document.getElementById('pacing-periods').value = localStorage.getItem('fire_dca_pacing') || 10;
     document.getElementById('freq-select').value = localStorage.getItem('fire_dca_freq') || 'Weekly';
+
+    function getSymbol(cur) {
+        return commonSymbols[cur] ? commonSymbols[cur] : cur + ' ';
+    }
+
+    // Genera el listado de divisas en el panel superior
+    function populateBaseCurrencySelect() {
+        const baseSelect = document.getElementById('base-currency');
+        const savedBase = localStorage.getItem('fire_dca_base_cur') || 'EUR';
+        baseSelect.innerHTML = ''; // Limpiamos
+        
+        availableCurrencies.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c;
+            opt.innerText = commonSymbols[c] ? `${c} (${commonSymbols[c]})` : c;
+            if (c === savedBase) opt.selected = true;
+            baseSelect.appendChild(opt);
+        });
+    }
 
     async function fetchRates() {
         try {
@@ -180,19 +196,28 @@
             const data = await response.json();
             if (data.rates) {
                 exchangeRates = data.rates;
-                document.getElementById('api-status').innerText = 'Rates: Live API';
+                // Extraemos todas las divisas disponibles de la API (160+)
+                availableCurrencies = Object.keys(data.rates); 
+                
+                // Forzamos a que las divisas principales salgan primero y el resto alfabéticamente
+                const majors = ["EUR", "USD", "GBP", "JPY", "CHF", "CAD", "AUD"];
+                const others = availableCurrencies.filter(c => !majors.includes(c)).sort();
+                availableCurrencies = [...majors, ...others];
+
+                document.getElementById('api-status').innerText = `Rates: Live API (${availableCurrencies.length} currencies)`;
+                
+                // Actualizamos las listas desplegables y la tabla
+                populateBaseCurrencySelect();
+                renderTable();
             }
         } catch (error) {
-            document.getElementById('api-status').innerText = 'Rates: Offline (Fallback)';
+            document.getElementById('api-status').innerText = 'Rates: Offline (Using Defaults)';
             console.error("Failed to fetch rates, using fallbacks.", error);
         }
-        calculateMath();
     }
 
-    // Convert any amount from 'fromCur' to 'toCur'
     function convertCurrency(amount, fromCur, toCur) {
         if (fromCur === toCur) return amount;
-        // Convert to EUR first (base of our API rates), then to target
         const amountInEur = amount / (exchangeRates[fromCur] || 1);
         return amountInEur * (exchangeRates[toCur] || 1);
     }
@@ -234,7 +259,7 @@
 
     function updateCurrencyLabels() {
         const baseCur = document.getElementById('base-currency').value;
-        const sym = symbols[baseCur] || baseCur;
+        const sym = getSymbol(baseCur);
         document.querySelectorAll('.base-cur-label').forEach(el => el.innerText = `(${sym})`);
     }
 
@@ -242,7 +267,7 @@
         const deposit = parseFloat(document.getElementById('period-deposit').value) || 0;
         const pacing = parseInt(document.getElementById('pacing-periods').value) || 1;
         const baseCur = document.getElementById('base-currency').value;
-        const sym = symbols[baseCur] || baseCur;
+        const sym = getSymbol(baseCur).trim();
         
         let currentTotalBase = 0;
         let targetTotalPct = 0;
@@ -253,7 +278,6 @@
             targetTotalPct += a.target;
         });
 
-        // Update Warning
         const warningEl = document.getElementById('target-warning');
         if (Math.abs(targetTotalPct - 100) > 0.01) {
             warningEl.className = "status-badge status-error";
@@ -285,20 +309,20 @@
             } else {
                 const remainingCash = deposit - numAssets;
                 const proportionalShare = totalDeficit === 0 ? 0 : (row.deficit / totalDeficit) * remainingCash;
-                row.finalAllocation = 1 + proportionalShare; // 1 unit base currency floor
+                row.finalAllocation = 1 + proportionalShare;
             }
             
             actualOrderTotal += row.finalAllocation;
             
             const idealEl = document.getElementById(`ideal-${index}`);
             const orderEl = document.getElementById(`order-${index}`);
-            if(idealEl) idealEl.innerText = `${sym}${row.idealValueBase.toFixed(2)}`;
-            if(orderEl) orderEl.innerText = `${sym}${row.finalAllocation.toFixed(2)}`;
+            if(idealEl) idealEl.innerText = `${sym} ${row.idealValueBase.toFixed(2)}`;
+            if(orderEl) orderEl.innerText = `${sym} ${row.finalAllocation.toFixed(2)}`;
         });
 
-        document.getElementById('stat-current-value').innerText = `${sym}${currentTotalBase.toFixed(2)}`;
-        document.getElementById('stat-target-value').innerText = `${sym}${targetTotalTheoretical.toFixed(2)}`;
-        document.getElementById('stat-total-order').innerText = `${sym}${actualOrderTotal.toFixed(2)}`;
+        document.getElementById('stat-current-value').innerText = `${sym} ${currentTotalBase.toFixed(2)}`;
+        document.getElementById('stat-target-value').innerText = `${sym} ${targetTotalTheoretical.toFixed(2)}`;
+        document.getElementById('stat-total-order').innerText = `${sym} ${actualOrderTotal.toFixed(2)}`;
     }
 
     function renderTable() {
@@ -309,9 +333,9 @@
         assets.forEach((asset, index) => {
             const tr = document.createElement('tr');
             
-            // Build currency options
+            // Construimos las opciones de divisas para cada activo basadas en las disponibles
             let curOptions = '';
-            currencies.forEach(c => {
+            availableCurrencies.forEach(c => {
                 const selected = (asset.currency || baseCur) === c ? 'selected' : '';
                 curOptions += `<option value="${c}" ${selected}>${c}</option>`;
             });
@@ -338,10 +362,11 @@
         calculateMath();
     }
 
-    // Initialize
+    // Arrancamos todo
     window.onload = () => {
+        populateBaseCurrencySelect();
         renderTable();
-        fetchRates();
+        fetchRates(); // Llama a la API en segundo plano
     };
 </script>
 </body>

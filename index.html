@@ -6,13 +6,14 @@
     <title>FIRE Toolkit - Personal Finance Tools</title>
     <style>
         :root {
-            --bg-color: #f8fafc;
-            --card-bg: #ffffff;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            --accent: #2563eb;
-            --accent-hover: #1d4ed8;
-            --border: #e2e8f0;
+            --bg-color: #0b1329;
+            --hero-bg: linear-gradient(180deg, #0f1c3f 0%, #0b1329 100%);
+            --card-bg: #1c2541;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --border: #334155;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.5; padding: 0; }
@@ -20,7 +21,7 @@
         .hero {
             text-align: center;
             padding: 5rem 1rem 3rem 1rem;
-            background: linear-gradient(180deg, #e0f2fe 0%, var(--bg-color) 100%);
+            background: var(--hero-bg);
         }
         .hero h1 { font-size: 3rem; color: var(--text-main); margin-bottom: 1rem; font-weight: 800; }
         .hero p { font-size: 1.25rem; color: var(--text-muted); max-width: 600px; margin: 0 auto; }
@@ -46,7 +47,8 @@
         }
         .card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            border-color: #475569;
         }
         .card h3 { font-size: 1.25rem; margin-bottom: 0.5rem; color: var(--text-main); }
         .card p { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem; flex-grow: 1; }
@@ -63,7 +65,7 @@
             transition: background-color 0.2s;
         }
         .btn:hover { background-color: var(--accent-hover); }
-        .btn-disabled { background-color: #cbd5e1; color: #94a3b8; cursor: not-allowed; pointer-events: none; }
+        .btn-disabled { background-color: #334155; color: #64748b; cursor: not-allowed; pointer-events: none; border: 1px solid #475569; }
         
         footer { text-align: center; color: var(--text-muted); font-size: 0.875rem; margin-top: 6rem; padding: 2rem 0; border-top: 1px solid var(--border); }
     </style>
@@ -85,7 +87,7 @@
                 <a href="./rebalance-calculator/" class="btn">Open Tool →</a>
             </div>
 
-            <div class="card" style="opacity: 0.7;">
+            <div class="card" style="opacity: 0.6;">
                 <div>
                     <h3>Compound Interest Tool</h3>
                     <p>Advanced future value simulator supporting irregular contributions, tax drag modeling, and inflation adjustment. Coming soon.</p>

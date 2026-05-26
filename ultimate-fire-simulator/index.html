@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Ultimate FI/RE Simulator - FIRE Toolkit</title>
+    <style>
+        :root {
+            --bg-color: #0b1329;
+            --card-bg: #1c2541;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --border: #334155;
+            --table-header: #1e293b;
+            --table-hover: #1e293b;
+            --success: #34d399;
+            --success-bg: #064e3b;
+            --fire-milestone: #10b981;
+            --fire-milestone-bg: #047857;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 2rem 1rem; line-height: 1.5; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        
+        .nav-back { margin-bottom: 1.5rem; }
+        .nav-back a { color: var(--accent); text-decoration: none; font-size: 0.95rem; font-weight: 600; }
+        .nav-back a:hover { color: var(--accent-hover); text-decoration: underline; }
+
+        header { margin-bottom: 2rem; }
+        header h1 { font-size: 2rem; color: var(--text-main); margin-bottom: 0.25rem; }
+        header p { color: var(--text-muted); }
+        
+        .config-layout { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .config-panel { background: var(--card-bg); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+        .full-width-input { grid-column: span 2; }
+        
+        .input-group { display: flex; flex-direction: column; gap: 0.5rem; }
+        .input-group label { font-size: 0.875rem; font-weight: 600; color: var(--text-muted); }
+        .input-group input { padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border); background-color: var(--bg-color); color: var(--text-main); font-size: 1rem; width: 100%; }
+        .input-group input:focus { border-color: var(--accent); outline: none; }
+        
+        .results-panel { display: flex; flex-direction: column; justify-content: space-between; }
+        .stats-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; height: 100%; }
+        .stat-card { background: var(--card-bg); padding: 1.25rem; border-radius: 10px; border: 1px solid var(--border); text-align: center; display: flex; flex-direction: column; justify-content: center; }
+        .stat-card h3 { font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.25rem; }
+        .stat-card p { font-size: 1.75rem; font-weight: bold; color: var(--accent); }
+        .stat-card .highlight-green { color: var(--success); }
+
+        .table-container { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); overflow-x: auto; margin-bottom: 2rem; max-height: 500px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.925rem; }
+        th { background: var(--table-header); padding: 1rem; font-weight: 600; color: var(--text-muted); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; }
+        td { padding: 0.85rem 1rem; border-bottom: 1px solid var(--border); color: var(--text-main); }
+        tr:hover { background: var(--table-hover); }
+        
+        /* Clase especial para cuando se alcanza el objetivo FIRE */
+        .row-fire { background-color: rgba(16, 185, 129, 0.15) !important; font-weight: bold; }
+        .badge-fire { background-color: var(--fire-milestone-bg); color: var(--success); padding: 0.25rem 0.5rem; border-radius: 6px; font-size: 0.8rem; text-transform: uppercase; }
+
+        footer { text-align: center; color: var(--text-muted); font-size: 0.875rem; margin-top: 4rem; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="nav-back">
+        <a href="../">← Back to FIRE Toolkit</a>
+    </div>
+
+    <header>
+        <h1>The Ultimate FI/RE Simulator</h1>
+        <p>Predict your timeline to financial freedom using real economic modeling</p>
+    </header>
+
+    <div class="config-layout">
+        <div class="config-panel">
+            <div class="input-group">
+                <label for="current-age">Current Age</label>
+                <input type="number" id="current-age" value="30" min="18" max="80" oninput="simulateFIRE()">
+            </div>
+            <div class="input-group">
+                <label for="net-worth">Current Net Worth (€)</label>
+                <input type="number" id="net-worth" value="20000" min="0" oninput="simulateFIRE()">
+            </div>
+            <div class="input-group full-width-input">
+                <label for="annual-expenses">Estimated Annual Expenses (€)</label>
+                <input type="number" id="annual-expenses" value="24000" min="1" oninput="simulateFIRE()">
+            </div>
+            <div class="input-group full-width-input">
+                <label for="monthly-savings">Monthly Contribution (€)</label>
+                <input type="number" id="monthly-savings" value="800" min="0" oninput="simulateFIRE()">
+            </div>
+            <div class="input-group">
+                <label for="annual-return">Annual Return (%)</label>
+                <input type="number" id="annual-return" value="8" step="0.1" oninput="simulateFIRE()">
+            </div>
+            <div class="input-group">
+                <label for="inflation-rate">Estimated Inflation (%)</label>
+                <input type="number" id="inflation-rate" value="2.5" step="0.1" oninput="simulateFIRE()">
+            </div>
+            <div class="input-group full-width-input">
+                <label for="swr-rate">Safe Withdrawal Rate / SWR (%)</label>
+                <input type="number" id="swr-rate" value="4.0" step="0.1" min="1" max="10" oninput="simulateFIRE()">
+            </div>
+        </div>
+
+        <div class="results-panel">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Your Target FIRE Number</h3>
+                    <p id="stat-fire-number">€0.00</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Years to Financial Freedom</h3>
+                    <p id="stat-fire-years" class="highlight-green">Calculating...</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Age of Independence</h3>
+                    <p id="stat-fire-age">Calculating...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h2>Year-by-Year Freedom Projection</h2>
+    <div class="table-container" style="margin-top: 1rem;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Year</th>
+                    <th>Age</th>
+                    <th>Annual Contribution</th>
+                    <th>Investment Growth</th>
+                    <th>End of Year Wealth</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="simulation-table-body">
+                </tbody>
+        </table>
+    </div>
+
+    <div id="global-footer-container"></div>
+    <script src="../js/footer.js"></script>
+</div>
+
+<script>
+    // Cargar datos guardados o usar defaults de los inputs
+    const storageKeys = {
+        age: 'fire_sim_age', nw: 'fire_sim_nw', exp: 'fire_sim_exp',
+        sav: 'fire_sim_sav', ret: 'fire_sim_ret', inf: 'fire_sim_inf', swr: 'fire_sim_swr'
+    };
+
+    if(localStorage.getItem(storageKeys.age)) document.getElementById('current-age').value = localStorage.getItem(storageKeys.age);
+    if(localStorage.getItem(storageKeys.nw)) document.getElementById('net-worth').value = localStorage.getItem(storageKeys.nw);
+    if(localStorage.getItem(storageKeys.exp)) document.getElementById('annual-expenses').value = localStorage.getItem(storageKeys.exp);
+    if(localStorage.getItem(storageKeys.sav)) document.getElementById('monthly-savings').value = localStorage.getItem(storageKeys.sav);
+    if(localStorage.getItem(storageKeys.ret)) document.getElementById('annual-return').value = localStorage.getItem(storageKeys.ret);
+    if(localStorage.getItem(storageKeys.inf)) document.getElementById('inflation-rate').value = localStorage.getItem(storageKeys.inf);
+    if(localStorage.getItem(storageKeys.swr)) document.getElementById('swr-rate').value = localStorage.getItem(storageKeys.swr);
+
+    function simulateFIRE() {
+        // Captura de datos
+        const currentAge = parseInt(document.getElementById('current-age').value) || 30;
+        const initialNW = parseFloat(document.getElementById('net-worth').value) || 0;
+        const annualExpenses = parseFloat(document.getElementById('annual-expenses').value) || 24000;
+        const monthlySavings = parseFloat(document.getElementById('monthly-savings').value) || 0;
+        const nominalReturn = parseFloat(document.getElementById('annual-return').value) || 0;
+        const inflation = parseFloat(document.getElementById('inflation-rate').value) || 0;
+        const swr = parseFloat(document.getElementById('swr-rate').value) || 4.0;
+
+        // Guardar en LocalStorage
+        localStorage.setItem(storageKeys.age, currentAge);
+        localStorage.setItem(storageKeys.nw, initialNW);
+        localStorage.setItem(storageKeys.exp, annualExpenses);
+        localStorage.setItem(storageKeys.sav, monthlySavings);
+        localStorage.setItem(storageKeys.ret, nominalReturn);
+        localStorage.setItem(storageKeys.inf, inflation);
+        localStorage.setItem(storageKeys.swr, swr);
+
+        // Cálculo matemático fundamental del movimiento FIRE
+        const fireNumber = annualExpenses / (swr / 100);
+        document.getElementById('stat-fire-number').innerText = `€${fireNumber.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}`;
+
+        // Rentabilidad real ajustada por inflación (Fórmula compuesta real)
+        const realReturnRate = ((1 + nominalReturn / 100) / (1 + inflation / 100)) - 1;
+        const annualSavings = monthlySavings * 12;
+
+        const tbody = document.getElementById('simulation-table-body');
+        tbody.innerHTML = '';
+
+        let currentWealth = initialNW;
+        let fireAchieved = false;
+        let yearsToFIRE = -1;
+        let maxYearsToSimulate = 50; // Límite de proyección por usabilidad
+        
+        const currentYear = new Date().getFullYear();
+
+        for (let i = 1; i <= maxYearsToSimulate; i++) {
+            let age = currentAge + i;
+            let startWealth = currentWealth;
+            
+            // Los ahorros anuales se añaden al principio del periodo
+            let compoundedContributions = annualSavings;
+            let growth = (startWealth + annualSavings) * realReturnRate;
+            currentWealth = startWealth + annualSavings + growth;
+
+            if (currentWealth < 0) currentWealth = 0;
+
+            const tr = document.createElement('tr');
+            
+            // Comprobación de hito de independencia financiera
+            let statusText = 'Accumulating';
+            if (currentWealth >= fireNumber) {
+                tr.className = 'row-fire';
+                statusText = '<span class="badge-fire">🔥 FIRE</span>';
+                if (!fireAchieved) {
+                    fireAchieved = true;
+                    yearsToFIRE = i;
+                }
+            }
+
+            tr.innerHTML = `
+                <td>${currentYear + i}</td>
+                <td>${age}</td>
+                <td>€${annualSavings.toLocaleString('en-US', {maximumFractionDigits: 0})}</td>
+                <td>€${growth.toLocaleString('en-US', {maximumFractionDigits: 0})}</td>
+                <td>€${currentWealth.toLocaleString('en-US', {maximumFractionDigits: 0})}</td>
+                <td>${statusText}</td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        // Actualizar paneles de KPIs rápidos
+        if (initialNW >= fireNumber) {
+            document.getElementById('stat-fire-years').innerText = "Already FIRE!";
+            document.getElementById('stat-fire-age').innerText = `${currentAge} years old`;
+        } else if (fireAchieved) {
+            document.getElementById('stat-fire-years').innerText = `${yearsToFIRE} ${yearsToFIRE === 1 ? 'Year' : 'Years'}`;
+            document.getElementById('stat-fire-age').innerText = `${currentAge + yearsToFIRE} years old`;
+        } else {
+            document.getElementById('stat-fire-years').innerText = '50+ Years ⏳';
+            document.getElementById('stat-fire-age').innerText = 'Increase savings rate';
+        }
+    }
+
+    window.onload = simulateFIRE;
+</script>
+</body>
+</html>

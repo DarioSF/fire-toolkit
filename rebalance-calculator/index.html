@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart DCA Rebalancer - FIRE Toolkit</title>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --accent: #2563eb;
+            --border: #e2e8f0;
+            --success: #16a34a;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 2rem 1rem; line-height: 1.5; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        
+        .nav-back { margin-bottom: 1.5rem; }
+        .nav-back a { color: var(--accent); text-decoration: none; font-size: 0.95rem; font-weight: 600; }
+        .nav-back a:hover { text-decoration: underline; }
+
+        header { margin-bottom: 2rem; }
+        header h1 { font-size: 2rem; color: var(--text-main); margin-bottom: 0.25rem; }
+        header p { color: var(--text-muted); }
+        
+        .config-panel { background: var(--card-bg); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; }
+        .input-group { display: flex; flex-direction: column; gap: 0.5rem; }
+        .input-group label { font-size: 0.875rem; font-weight: 600; color: var(--text-muted); }
+        .input-group input { padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border); font-size: 1rem; }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .stat-card { background: var(--card-bg); padding: 1.25rem; border-radius: 10px; border: 1px solid var(--border); text-align: center; }
+        .stat-card h3 { font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.25rem; }
+        .stat-card p { font-size: 1.5rem; font-weight: bold; color: var(--accent); }
+        
+        .table-container { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); overflow-x: auto; margin-bottom: 2rem; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.925rem; }
+        th { background: #f1f5f9; padding: 1rem; font-weight: 600; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+        td { padding: 1rem; border-bottom: 1px solid var(--border); }
+        tr:hover { background: #f8fafc; }
+        .input-table { width: 100px; padding: 0.4rem; border-radius: 6px; border: 1px solid var(--border); text-align: right; }
+        .badge-target { font-weight: 600; color: var(--text-muted); }
+        .badge-allocation { font-weight: bold; color: var(--success); background: #f0fdf4; padding: 0.25rem 0.5rem; border-radius: 6px; }
+        footer { text-align: center; color: var(--text-muted); font-size: 0.875rem; margin-top: 4rem; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="nav-back">
+        <a href="../">← Back to FIRE Toolkit</a>
+    </div>
+
+    <header>
+        <h1>Smart DCA Rebalancer</h1>
+        <p>Pacing & Smoothed Cash Flow Allocation Algorithm</p>
+    </header>
+
+    <div class="config-panel">
+        <div class="input-group">
+            <label for="weekly-deposit">Weekly Contribution (€)</label>
+            <input type="number" id="weekly-deposit" value="100" min="15">
+        </div>
+        <div class="input-group">
+            <label for="pacing-weeks">Pacing Horizon (Weeks)</label>
+            <input type="number" id="pacing-weeks" value="10" min="1">
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Current Portfolio Value</h3>
+            <p id="stat-current-value">€0.00</p>
+        </div>
+        <div class="stat-card">
+            <h3>Target Value (Post-Pacing)</h3>
+            <p id="stat-target-value">€0.00</p>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Asset Name</th>
+                    <th>Current Value (€)</th>
+                    <th>Target %</th>
+                    <th>Ideal Value (€)</th>
+                    <th>Weekly Order (€)</th>
+                </tr>
+            </thead>
+            <tbody id="asset-table-body">
+                </tbody>
+        </table>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 FIRE Toolkit. All Rights Reserved.</p>
+    </footer>
+</div>
+
+<script>
+    const assets = [
+        { name: "Core S&P 500 ETF", target: 40.0 },
+        { name: "MSCI China USD", target: 10.0 },
+        { name: "Space Innovators ETF", target: 10.0 },
+        { name: "Nikkei 255 JPY ETF", target: 10.0 },
+        { name: "Bitcoin", target: 5.0 },
+        { name: "Developed Markets Property Yield", target: 5.0 },
+        { name: "Global Water USD", target: 2.5 },
+        { name: "Copper USD", target: 2.5 },
+        { name: "Physical Silver", target: 2.5 },
+        { name: "Physical Gold USD", target: 2.5 },
+        { name: "Industrial Metals Enhanced", target: 2.5 },
+        { name: "Physical Platinum", target: 2.5 },
+        { name: "Rare Earth & Strategic Metals", target: 2.5 },
+        { name: "Uranium USD", target: 2.5 }
+    ];
+
+    const initialValues = {
+        "Core S&P 500 ETF": 916.59, "MSCI China USD": 34.52, "Space Innovators ETF": 206.18,
+        "Nikkei 255 JPY ETF": 117.06, "Bitcoin": 115.45, "Developed Markets Property Yield": 99.78,
+        "Global Water USD": 34.38, "Copper USD": 30.08, "Physical Silver": 28.76,
+        "Physical Gold USD": 28.00, "Industrial Metals Enhanced": 25.91, "Physical Platinum": 24.70,
+        "Rare Earth & Strategic Metals": 24.79, "Uranium USD": 23.41
+    };
+
+    function calculateRebalance() {
+        const weeklyDeposit = parseFloat(document.getElementById('weekly-deposit').value) || 0;
+        const pacingWeeks = parseInt(document.getElementById('pacing-weeks').value) || 1;
+        
+        let currentTotal = 0;
+        const rowsData = [];
+
+        assets.forEach((asset, index) => {
+            const inputEl = document.getElementById(`val-${index}`);
+            let currentValue = inputEl ? parseFloat(inputEl.value) : (initialValues[asset.name] || 0);
+            if (isNaN(currentValue)) currentValue = 0;
+            currentTotal += currentValue;
+            rowsData.push({ ...asset, currentValue });
+        });
+
+        const targetTotalTheoretical = currentTotal + (weeklyDeposit * pacingWeeks);
+        
+        let totalDeficit = 0;
+        rowsData.forEach(row => {
+            row.idealValue = targetTotalTheoretical * (row.target / 100);
+            row.deficit = Math.max(0, row.idealValue - row.currentValue);
+            totalDeficit += row.deficit;
+        });
+
+        const numAssets = assets.length;
+        
+        rowsData.forEach(row => {
+            if (weeklyDeposit < numAssets) {
+                row.finalAllocation = weeklyDeposit / numAssets;
+            } else {
+                const remainingCash = weeklyDeposit - numAssets;
+                const proportionalShare = totalDeficit === 0 ? 0 : (row.deficit / totalDeficit) * remainingCash;
+                row.finalAllocation = 1 + proportionalShare;
+            }
+        });
+
+        document.getElementById('stat-current-value').innerText = `€${currentTotal.toFixed(2)}`;
+        document.getElementById('stat-target-value').innerText = `€${targetTotalTheoretical.toFixed(2)}`;
+
+        rowsData.forEach((row, index) => {
+            document.getElementById(`ideal-${index}`).innerText = `€${row.idealValue.toFixed(2)}`;
+            document.getElementById(`order-${index}`).innerText = `€${row.finalAllocation.toFixed(2)}`;
+        });
+    }
+
+    function initTable() {
+        const tbody = document.getElementById('asset-table-body');
+        tbody.innerHTML = '';
+
+        assets.forEach((asset, index) => {
+            const tr = document.createElement('tr');
+            const startVal = initialValues[asset.name] || 0;
+            
+            tr.innerHTML = `
+                <td><strong>${asset.name}</strong></td>
+                <td><input type="number" id="val-${index}" class="input-table" value="${startVal}" step="0.01"></td>
+                <td class="badge-target">${asset.target.toFixed(1)}%</td>
+                <td id="ideal-${index}">€0.00</td>
+                <td><span id="order-${index}" class="badge-allocation">€0.00</span></td>
+            `;
+            tbody.appendChild(tr);
+            
+            document.getElementById(`val-${index}`).addEventListener('input', calculateRebalance);
+        });
+
+        document.getElementById('weekly-deposit').addEventListener('input', calculateRebalance);
+        document.getElementById('pacing-weeks').addEventListener('input', calculateRebalance);
+
+        calculateRebalance();
+    }
+
+    window.onload = initTable;
+</script>
+</body>
+</html>

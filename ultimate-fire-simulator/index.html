@@ -42,9 +42,9 @@
         
         .results-panel { display: flex; flex-direction: column; justify-content: space-between; }
         .stats-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; height: 100%; }
-        .stat-card { background: var(--card-bg); padding: 1.25rem; border-radius: 10px; border: 1px solid var(--border); text-align: center; display: flex; flex-direction: column; justify-content: center; }
-        .stat-card h3 { font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.25rem; }
-        .stat-card p { font-size: 1.75rem; font-weight: bold; color: var(--accent); }
+        .stat-card { background: var(--card-bg); padding: 1.5rem; border-radius: 10px; border: 1px solid var(--border); text-align: center; display: flex; flex-direction: column; justify-content: center; }
+        .stat-card h3 { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+        .stat-card p { font-size: 2rem; font-weight: bold; color: var(--accent); }
         .stat-card .highlight-green { color: var(--success); }
 
         .table-container { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); overflow-x: auto; margin-bottom: 2rem; max-height: 500px; }
@@ -163,9 +163,8 @@
 
     const currencySymbols = { USD: '$', EUR: '€', GBP: '£', CAD: 'C$', AUD: 'A$', JPY: '¥', CHF: 'CHF ' };
 
-    // Cargar datos guardados (USD por defecto si no hay nada guardado)
     if(localStorage.getItem(storageKeys.cur)) document.getElementById('sim-currency').value = localStorage.getItem(storageKeys.cur);
-    else document.getElementById('sim-currency').value = 'USD'; // Default a USD
+    else document.getElementById('sim-currency').value = 'USD';
 
     if(localStorage.getItem(storageKeys.age)) document.getElementById('current-age').value = localStorage.getItem(storageKeys.age);
     if(localStorage.getItem(storageKeys.nw)) document.getElementById('net-worth').value = localStorage.getItem(storageKeys.nw);

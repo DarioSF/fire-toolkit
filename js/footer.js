@@ -17,7 +17,7 @@ const footerHTML = `
 
 <div class="global-footer">
     <div class="monetization-banner">
-        <a href="#" target="_blank" rel="noopener noreferrer" class="affiliate-btn">
+        <a href="https://refnocode.trade.re/r2p0xrwc" target="_blank" rel="noopener noreferrer" class="affiliate-btn">
             📈 Start investing with Trade Republic
         </a>
         

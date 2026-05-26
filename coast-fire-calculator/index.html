@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coast & Barista FIRE Calculator - FIRE Toolkit</title>
+    <style>
+        :root {
+            --bg-color: #0b1329;
+            --card-bg: #1c2541;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #3b82f6;
+            --border: #334155;
+            --success: #34d399;
+            --success-bg: #064e3b;
+            --warning: #fbbf24;
+            --warning-bg: #78350f;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 2rem 1rem; line-height: 1.5; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        
+        .nav-back { margin-bottom: 1.5rem; }
+        .nav-back a { color: var(--accent); text-decoration: none; font-size: 0.95rem; font-weight: 600; }
+        .nav-back a:hover { text-decoration: underline; }
+
+        header { margin-bottom: 2rem; }
+        header h1 { font-size: 2rem; color: var(--text-main); margin-bottom: 0.25rem; }
+        header p { color: var(--text-muted); }
+        
+        .config-layout { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .config-panel { background: var(--card-bg); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+        
+        .input-group { display: flex; flex-direction: column; gap: 0.5rem; }
+        .input-group label { font-size: 0.875rem; font-weight: 600; color: var(--text-muted); }
+        .input-group input, .input-group select { padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border); background-color: var(--bg-color); color: var(--text-main); font-size: 1rem; width: 100%; }
+        .input-group input:focus, .input-group select:focus { border-color: var(--accent); outline: none; }
+        
+        .results-panel { display: flex; flex-direction: column; justify-content: space-between; }
+        .stats-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; height: 100%; }
+        .stat-card { background: var(--card-bg); padding: 1.5rem; border-radius: 10px; border: 1px solid var(--border); text-align: center; display: flex; flex-direction: column; justify-content: center; }
+        .stat-card h3 { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+        .stat-card p { font-size: 2rem; font-weight: bold; color: var(--text-main); }
+        .highlight-green { color: var(--success) !important; }
+        .highlight-warning { color: var(--warning) !important; }
+
+        .progress-container { margin-top: 1rem; background-color: var(--bg-color); border-radius: 999px; height: 12px; overflow: hidden; border: 1px solid var(--border); }
+        .progress-bar { height: 100%; background-color: var(--accent); transition: width 0.5s ease; }
+        .progress-bar.achieved { background-color: var(--success); }
+        
+        .insight-box { background-color: rgba(59, 130, 246, 0.1); border: 1px solid var(--accent); padding: 1.5rem; border-radius: 12px; margin-top: 2rem; text-align: center; }
+        .insight-box h4 { margin-bottom: 0.5rem; color: var(--accent); font-size: 1.1rem;}
+        .insight-box p { color: var(--text-muted); font-size: 0.95rem; }
+
+        footer { text-align: center; color: var(--text-muted); font-size: 0.875rem; margin-top: 4rem; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="nav-back">
+        <a href="../">← Back to FIRE Toolkit</a>
+    </div>
+
+    <header>
+        <h1>Coast & Barista FIRE Calculator</h1>
+        <p>Find out how much you need today to never invest another cent until retirement.</p>
+    </header>
+
+    <div class="config-layout">
+        <div class="config-panel">
+            <div class="input-group">
+                <label for="coast-currency">Currency</label>
+                <select id="coast-currency" onchange="calculateCoast()">
+                    <option value="USD">USD ($)</option>
+                    <option value="EUR">EUR (€)</option>
+                    <option value="GBP">GBP (£)</option>
+                    <option value="CAD">CAD (C$)</option>
+                    <option value="AUD">AUD (A$)</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label for="current-age">Current Age</label>
+                <input type="number" id="current-age" value="30" min="18" max="80" oninput="calculateCoast()">
+            </div>
+            <div class="input-group">
+                <label for="retire-age">Target Retire Age</label>
+                <input type="number" id="retire-age" value="65" min="30" max="100" oninput="calculateCoast()">
+            </div>
+            <div class="input-group">
+                <label for="net-worth">Current Net Worth</label>
+                <input type="number" id="net-worth" value="45000" min="0" oninput="calculateCoast()">
+            </div>
+            <div class="input-group">
+                <label for="annual-expenses">Retirement Expenses/Yr</label>
+                <input type="number" id="annual-expenses" value="40000" min="1" oninput="calculateCoast()">
+            </div>
+            <div class="input-group">
+                <label for="annual-return">Annual Return (%)</label>
+                <input type="number" id="annual-return" value="8.0" step="0.1" oninput="calculateCoast()">
+            </div>
+            <div class="input-group">
+                <label for="inflation-rate">Inflation (%)</label>
+                <input type="number" id="inflation-rate" value="2.5" step="0.1" oninput="calculateCoast()">
+            </div>
+            <div class="input-group">
+                <label for="swr-rate">Safe Withdrawal (SWR %)</label>
+                <input type="number" id="swr-rate" value="4.0" step="0.1" min="1" max="10" oninput="calculateCoast()">
+            </div>
+        </div>
+
+        <div class="results-panel">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Your Traditional FIRE Number</h3>
+                    <p id="stat-fire-number">$0</p>
+                </div>
+                <div class="stat-card" style="border-color: var(--accent);">
+                    <h3>Coast FIRE Target (Needed Today)</h3>
+                    <p id="stat-coast-number" style="color: var(--accent);">$0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Current Status</h3>
+                    <p id="stat-gap" class="highlight-warning">Calculating...</p>
+                    <div class="progress-container">
+                        <div id="progress-bar" class="progress-bar" style="width: 0%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="insight-box">
+        <h4 id="insight-title">What does this mean?</h4>
+        <p id="insight-text">Loading insights...</p>
+    </div>
+
+    <div id="global-footer-container"></div>
+    <script src="../js/footer.js"></script>
+</div>
+
+<script>
+    const keys = {
+        cur: 'coast_cur', age: 'coast_age', retAge: 'coast_ret_age', nw: 'coast_nw', 
+        exp: 'coast_exp', ret: 'coast_ret', inf: 'coast_inf', swr: 'coast_swr'
+    };
+
+    const currencySymbols = { USD: '$', EUR: '€', GBP: '£', CAD: 'C$', AUD: 'A$' };
+
+    // Load defaults
+    if(localStorage.getItem(keys.cur)) document.getElementById('coast-currency').value = localStorage.getItem(keys.cur);
+    if(localStorage.getItem(keys.age)) document.getElementById('current-age').value = localStorage.getItem(keys.age);
+    if(localStorage.getItem(keys.retAge)) document.getElementById('retire-age').value = localStorage.getItem(keys.retAge);
+    if(localStorage.getItem(keys.nw)) document.getElementById('net-worth').value = localStorage.getItem(keys.nw);
+    if(localStorage.getItem(keys.exp)) document.getElementById('annual-expenses').value = localStorage.getItem(keys.exp);
+    if(localStorage.getItem(keys.ret)) document.getElementById('annual-return').value = localStorage.getItem(keys.ret);
+    if(localStorage.getItem(keys.inf)) document.getElementById('inflation-rate').value = localStorage.getItem(keys.inf);
+    if(localStorage.getItem(keys.swr)) document.getElementById('swr-rate').value = localStorage.getItem(keys.swr);
+
+    function calculateCoast() {
+        const sym = currencySymbols[document.getElementById('coast-currency').value] || '$';
+        const currentAge = parseInt(document.getElementById('current-age').value) || 30;
+        const retireAge = parseInt(document.getElementById('retire-age').value) || 65;
+        const currentNW = parseFloat(document.getElementById('net-worth').value) || 0;
+        const expenses = parseFloat(document.getElementById('annual-expenses').value) || 40000;
+        const nominalReturn = parseFloat(document.getElementById('annual-return').value) || 0;
+        const inflation = parseFloat(document.getElementById('inflation-rate').value) || 0;
+        const swr = parseFloat(document.getElementById('swr-rate').value) || 4.0;
+
+        // Save to local storage
+        localStorage.setItem(keys.cur, document.getElementById('coast-currency').value);
+        localStorage.setItem(keys.age, currentAge);
+        localStorage.setItem(keys.retAge, retireAge);
+        localStorage.setItem(keys.nw, currentNW);
+        localStorage.setItem(keys.exp, expenses);
+        localStorage.setItem(keys.ret, nominalReturn);
+        localStorage.setItem(keys.inf, inflation);
+        localStorage.setItem(keys.swr, swr);
+
+        const yearsToGrow = Math.max(0, retireAge - currentAge);
+        const realReturn = ((1 + nominalReturn / 100) / (1 + inflation / 100)) - 1;
+        
+        // Math formulas
+        const fireNumber = expenses / (swr / 100);
+        const coastNumber = fireNumber / Math.pow(1 + realReturn, yearsToGrow);
+
+        // Update UI
+        document.getElementById('stat-fire-number').innerText = `${sym}${fireNumber.toLocaleString('en-US', {maximumFractionDigits: 0})}`;
+        document.getElementById('stat-coast-number').innerText = `${sym}${coastNumber.toLocaleString('en-US', {maximumFractionDigits: 0})}`;
+
+        const progressBar = document.getElementById('progress-bar');
+        const statGap = document.getElementById('stat-gap');
+        const insightTitle = document.getElementById('insight-title');
+        const insightText = document.getElementById('insight-text');
+
+        let progressPct = (currentNW / coastNumber) * 100;
+        if (progressPct > 100) progressPct = 100;
+
+        progressBar.style.width = `${progressPct}%`;
+
+        if (currentNW >= coastNumber) {
+            progressBar.className = 'progress-bar achieved';
+            statGap.innerText = 'Coast FIRE Achieved! 🎉';
+            statGap.className = 'highlight-green';
+            
+            insightTitle.innerText = "You can stop investing right now.";
+            insightText.innerHTML = `Congratulations! You have enough money invested today. Even if you don't add another cent, compound interest will grow your <strong>${sym}${currentNW.toLocaleString()}</strong> to your traditional FIRE goal of <strong>${sym}${fireNumber.toLocaleString()}</strong> by age ${retireAge}. You can comfortably transition to a "Barista FIRE" lifestyle, meaning you only need to work enough to cover your current living expenses without worrying about saving for retirement.`;
+        } else {
+            progressBar.className = 'progress-bar';
+            const gap = coastNumber - currentNW;
+            statGap.innerText = `${sym}${gap.toLocaleString('en-US', {maximumFractionDigits: 0})} to go`;
+            statGap.className = 'highlight-warning';
+            
+            insightTitle.innerText = "Keep building the snowball.";
+            insightText.innerHTML = `You are currently <strong>${progressPct.toFixed(1)}%</strong> of the way to Coast FIRE. You need to invest an additional <strong>${sym}${gap.toLocaleString()}</strong>. Once you hit that Coast target, you can completely stop saving for retirement. Until then, keep investing consistently!`;
+        }
+    }
+
+    window.onload = calculateCoast;
+</script>
+</body>
+</html>

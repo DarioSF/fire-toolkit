@@ -17,11 +17,11 @@ const footerHTML = `
 
 <div class="global-footer">
     <div class="monetization-banner">
-        <a href="TU_ENLACE_DE_TRADE_REPUBLIC_AQUI" target="_blank" rel="noopener noreferrer" class="affiliate-btn">
+        <a href="#" target="_blank" rel="noopener noreferrer" class="affiliate-btn">
             📈 Start investing with Trade Republic
         </a>
         
-        <a href="https://buymeacoffee.com/TU_USUARIO" target="_blank" rel="noopener noreferrer" class="coffee-btn">
+        <a href="https://buymeacoffee.com/dariosf" target="_blank" rel="noopener noreferrer" class="coffee-btn">
             ☕ Buy me a coffee
         </a>
     </div>
